@@ -1,6 +1,7 @@
 import Reveal from "@/components/ui/Reveal";
 import Magnetic from "@/components/ui/Magnetic";
 import { EMAIL, SOCIAL_LINKS, linkProps } from "@/components/layout/socialLinks";
+import SocialIcon from "@/components/ui/SocialIcon";
 
 export default function Contact() {
   return (
@@ -47,18 +48,21 @@ export default function Contact() {
           </Magnetic>
         </div>
 
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
+        <ul className="mt-10 flex flex-wrap items-center justify-center gap-3" aria-label="Find me online">
           {SOCIAL_LINKS.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              {...linkProps(link)}
-              className="text-[14px] font-medium text-contact-ink-muted underline decoration-contact-ink-muted underline-offset-4 transition-colors duration-150 hover:text-contact-ink hover:decoration-[rgb(var(--contact-accent-rgb))]"
-            >
-              {link.label}
-            </a>
+            <li key={link.label}>
+              <a
+                href={link.href}
+                {...linkProps(link)}
+                aria-label={link.label}
+                title={link.label}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/25 text-contact-ink-muted transition-all duration-150 hover:-translate-y-0.5 hover:border-[rgb(var(--contact-accent-rgb))] hover:text-contact-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--contact-accent-rgb))]"
+              >
+                {link.icon ? <SocialIcon name={link.icon} /> : link.label}
+              </a>
+            </li>
           ))}
-        </div>
+        </ul>
       </Reveal>
     </section>
   );

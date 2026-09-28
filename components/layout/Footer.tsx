@@ -1,10 +1,10 @@
-import { SOCIAL_LINKS, linkProps, type SocialLink } from "@/components/layout/socialLinks";
+import { SOCIAL_LINKS, linkProps } from "@/components/layout/socialLinks";
+import SocialIcon from "@/components/ui/SocialIcon";
 
-const LINKS: SocialLink[] = [
-  { label: "Work", href: "#work", external: false },
-  { label: "Services", href: "#services", external: false },
-  { label: "About", href: "#about", external: false },
-  ...SOCIAL_LINKS,
+const LINKS = [
+  { label: "Work", href: "#work" },
+  { label: "Services", href: "#services" },
+  { label: "About", href: "#about" },
 ];
 
 export default function Footer() {
@@ -20,21 +20,38 @@ export default function Footer() {
           <p className="mt-0.5 text-[13px] text-ink-muted">AI &amp; Full-Stack Developer</p>
         </div>
 
-        <nav aria-label="Footer">
-          <ul className="flex flex-wrap gap-x-6 gap-y-2 text-[13.5px] text-ink-muted">
-            {LINKS.map((link) => (
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:gap-8">
+          <nav aria-label="Footer">
+            <ul className="flex flex-wrap gap-x-6 gap-y-2 text-[13.5px] text-ink-muted">
+              {LINKS.map((link) => (
+                <li key={link.label}>
+                  <a
+                    href={link.href}
+                    className="transition-colors duration-150 hover:text-signal"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <ul className="flex items-center gap-1" aria-label="Social links">
+            {SOCIAL_LINKS.map((link) => (
               <li key={link.label}>
                 <a
                   href={link.href}
                   {...linkProps(link)}
-                  className="transition-colors duration-150 hover:text-signal"
+                  aria-label={link.label}
+                  title={link.label}
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-ink-muted transition-colors duration-150 hover:bg-paper-subtle hover:text-signal"
                 >
-                  {link.label}
+                  {link.icon ? <SocialIcon name={link.icon} className="h-[18px] w-[18px]" /> : link.label}
                 </a>
               </li>
             ))}
           </ul>
-        </nav>
+        </div>
       </div>
 
       <div className="border-t border-line">
