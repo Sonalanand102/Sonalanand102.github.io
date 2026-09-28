@@ -1,0 +1,745 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   Ink & Signal — design tokens
+   Light mode has been removed: the site is dark-only now, so this is simply
+   the one palette, always applied via the bare :root. Deep blue/olive base,
+   soft blue / sage / lavender accents, a sparing peach.
+   Components only ever consume the variable names below.
+
+   Two tiers per accent color:
+     --color-{name}       the literal palette hue — used for backgrounds,
+                           washes, borders, dots, decorative fills. No text-
+                           contrast obligation.
+     --signal / --accent-warm / --accent-coral / --accent-peach
+                           the same hue, used for real text/links/numbers.
+                           Named --signal/--accent-* for historical/continuity
+                           reasons from the light+dark era; all four already
+                           clear WCAG AA against this dark base at their
+                           literal value, so no separate deepened value is
+                           needed the way the old light theme required.
+   ========================================================================== */
+:root {
+  /* base — deep blue/olive, deliberately NOT black. A colored atmosphere,
+     not a charcoal void. */
+  --paper: #111a20;
+  --paper-subtle: #1b2628; /* card surface */
+  --paper-inset: #202d2e; /* secondary surface */
+  --surface-cool: #1b2825; /* Services — deep blue-olive chapter break from the Hero's cool paper (was too close to --paper to read as a new section) */
+  --surface-warm: #121f1d; /* Products — soft sage tint */
+  --surface-lavender: #151a24; /* About — soft lavender tint */
+  --ink: #f3f1e8;
+  --ink-muted: #a9ada3;
+  --ink-faint: #8f9389;
+  --line: #303a37;
+  --line-strong: #414d49;
+
+  /* soft blue — primary accent */
+  --color-blue: #8faff5;
+  --color-blue-rgb: 143, 175, 245;
+  --color-blue-soft: #17233a;
+  --signal: #8faff5;
+  --signal-rgb: 143, 175, 245;
+  --signal-ink: #101820;
+  --signal-wash: var(--color-blue-soft);
+
+  /* sage — document/structure accent */
+  --color-sage: #a8b98f;
+  --color-sage-rgb: 168, 185, 143;
+  --color-sage-soft: #1a2119;
+  --accent-warm: #a8b98f;
+  --accent-warm-rgb: 168, 185, 143;
+  --accent-warm-ink: #101820;
+  --accent-warm-wash: var(--color-sage-soft);
+
+  /* lavender — applications/creative accent */
+  --color-lavender: #b5a7e5;
+  --color-lavender-rgb: 181, 167, 229;
+  --color-lavender-soft: #1c1a2b;
+  --accent-coral: #b5a7e5;
+  --accent-coral-rgb: 181, 167, 229;
+  --accent-coral-ink: #101820;
+  --accent-coral-wash: var(--color-lavender-soft);
+
+  /* peach — tiny, sparing warm accent (decorative only, never running text) */
+  --color-peach: #e6a58f;
+  --color-peach-soft: #26201c;
+  --accent-peach: var(--color-peach);
+  --accent-peach-rgb: 230, 165, 143;
+  --accent-peach-ink: #101820;
+
+  /* Contact sits on its own deep intelligent-blue background; its small
+     peach touches (dot, focus ring) already clear 3:1 there at the literal
+     peach value, so no separate deepened token is needed. */
+  --contact-accent-rgb: 230, 165, 143;
+
+  /* deep intelligent blue — distinct from the brighter interactive
+     --signal, so the full-bleed section reads as atmosphere, not a flat
+     repeat of the accent. */
+  --contact-bg: #20345c;
+  --contact-ink: #f3f1e8;
+  --contact-ink-muted: #cdd3e6;
+  --contact-cta-bg: #f3f1e8;
+  --contact-cta-ink: #101820;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 28px rgba(143, 175, 245, 0.18);
+  --grid-dot: rgba(150, 175, 220, 0.05); /* extremely subtle cool blue-gray */
+  --core-glow: rgba(143, 175, 245, 0.22); /* ambient light around the hero AI-core visual */
+  --service-glow: rgba(143, 175, 245, 0.13); /* a softer echo of the hero's glow, used once behind the Services feature visual — same light, quieter voice */
+  --services-atmosphere: rgba(168, 185, 143, 0.05); /* extremely faint sage wash across the whole Services section — depth, not decoration */
+
+  /* Global cursor spotlight — a bit more visible against this dark, blue/
+     olive atmosphere; still a sense of depth around the pointer, never a
+     glowing cursor. */
+  --cursor-spot-a: rgba(143, 175, 245, 0.12);
+  --cursor-spot-b: rgba(168, 185, 143, 0.07);
+}
+
+* {
+  border-color: var(--line);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+::selection {
+  background: var(--signal-wash);
+  color: var(--ink);
+}
+
+/* ---------- global cursor spotlight ---------- */
+/* A fixed, full-viewport radial glow following the pointer — mounted once
+   by CursorGlow.tsx, which also decides whether to render it at all (never
+   on touch devices or with reduced motion). Position comes from --cx/--cy,
+   set directly on this element's style by the mousemove listener; the
+   colors are theme tokens so light stays a whisper and dark reads a little
+   more present, per the brief. */
+.cursor-glow {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(
+    600px circle at var(--cx, 50%) var(--cy, 50%),
+    var(--cursor-spot-a) 0%,
+    var(--cursor-spot-b) 35%,
+    transparent 65%
+  );
+}
+
+/* Consistent, visible focus state everywhere — required for keyboard nav */
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Inside Contact, the page background IS a saturated periwinkle, so a
+   signal-colored focus ring would be invisible. Swap to Contact's own
+   peach accent tier, tuned to clear 3:1 against --contact-bg. */
+#contact :focus-visible {
+  outline-color: rgb(var(--contact-accent-rgb));
+}
+
+/* Single entrance motif, used once by the hero on first paint. */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 500ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+/* Very faint dot grid — the site's one recurring texture motif. Opacity is
+   intentionally low; it should read as "richer" rather than as a pattern. */
+.bg-dot-grid {
+  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* Marker-style accent treatment behind a headline word. Deliberately not a
+   rectangle — a soft, low-alpha wash roughly the shape of the word plus a
+   thin gradient underline, so it reads as ink/light rather than a
+   text-selection box. */
+.mark-signal {
+  position: relative;
+  white-space: nowrap;
+}
+.mark-signal::before {
+  content: "";
+  position: absolute;
+  left: -0.12em;
+  right: -0.12em;
+  bottom: -0.08em;
+  height: 0.62em;
+  background: radial-gradient(
+    ellipse 80% 100% at 50% 100%,
+    rgba(var(--signal-rgb), 0.16) 0%,
+    rgba(var(--signal-rgb), 0.06) 60%,
+    transparent 85%
+  );
+  z-index: -1;
+}
+.mark-signal::after {
+  content: "";
+  position: absolute;
+  left: -0.06em;
+  right: -0.06em;
+  bottom: -0.03em;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--signal-rgb), 0.75) 12%,
+    rgba(var(--signal-rgb), 0.75) 88%,
+    transparent
+  );
+}
+
+/* Same treatment, sage — reserved for anywhere a highlight needs to sit on
+   a light paper background but signal blue is already in use nearby. */
+.mark-warm {
+  position: relative;
+  white-space: nowrap;
+}
+.mark-warm::before {
+  content: "";
+  position: absolute;
+  left: -0.1em;
+  right: -0.1em;
+  bottom: 0.06em;
+  height: 0.34em;
+  background: rgba(var(--accent-warm-rgb), 0.16);
+  border-radius: 2px;
+  z-index: -1;
+}
+
+/* Peach — Contact's one warm accent, used for its headline highlight since
+   the section background is already the signal blue. Kept low-alpha; the
+   headline text itself stays warm ivory (--contact-ink) throughout. */
+.mark-peach {
+  position: relative;
+  white-space: nowrap;
+}
+.mark-peach::before {
+  content: "";
+  position: absolute;
+  left: -0.1em;
+  right: -0.1em;
+  bottom: 0.06em;
+  height: 0.34em;
+  background: rgba(var(--accent-peach-rgb), 0.3);
+  border-radius: 2px;
+  z-index: -1;
+}
+
+/* Slow, subtle vertical drift for decorative hero chips. Amplitude is small
+   on purpose — this rewards a second glance, it doesn't demand attention. */
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float {
+  animation: float-slow 6s ease-in-out infinite;
+}
+.animate-float-delay {
+  animation: float-slow 6s ease-in-out infinite;
+  animation-delay: 1.4s;
+}
+.animate-float-delay-2 {
+  animation: float-slow 7s ease-in-out infinite;
+  animation-delay: 0.6s;
+}
+
+/* ==========================================================================
+   AI Core — the hero's signature visual. A premium "AI product workspace":
+   a few real, independent product interfaces floating together — a
+   knowledge-assistant chat (the focal point), a document being processed
+   tucked behind it, and a small application card — plus a handful of tech
+   tags scattered as metadata. Nothing here is wired together with a line;
+   the interfaces themselves carry the story. Visible at every breakpoint —
+   small and centered on mobile (below the primary content, since it's
+   second in source order and the grid is single-column there), scaling up
+   through tablet, full-size and right-aligned from lg up. `min-width: 0`
+   keeps this from ever forcing the grid's right-hand track wider than its
+   own fr share — without it, a wide intrinsic size here would squeeze the
+   headline's column instead of yielding to it. Pointer parallax is
+   desktop-only (gated in the component itself); everywhere else this is
+   simply the calm, CSS-only idle motion below.
+   ========================================================================== */
+.ai-core-wrap {
+  position: relative;
+  min-width: 0;
+  width: clamp(230px, 56vw, 320px);
+  aspect-ratio: 1.05;
+  margin-inline: auto;
+}
+@media (min-width: 640px) {
+  .ai-core-wrap {
+    width: clamp(270px, 40vw, 340px);
+  }
+}
+@media (min-width: 1024px) {
+  .ai-core-wrap {
+    width: clamp(300px, 27vw, 400px);
+    margin-left: auto;
+    margin-right: 0;
+  }
+}
+
+.ai-core-glow {
+  position: absolute;
+  inset: -16%;
+  border-radius: 26%;
+  background: radial-gradient(ellipse 65% 60% at 42% 46%, var(--core-glow) 0%, transparent 72%);
+  filter: blur(30px);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Services — art direction helpers. Two decorative layers, both purely
+   atmospheric (pointer-events: none, aria-hidden at the call site): a
+   section-wide, almost imperceptible sage wash for depth, and a small,
+   slightly warmer echo of the hero's glow placed once behind the featured
+   (01) visual so that service reads as the one the section wants noticed.
+   ========================================================================== */
+.svc-atmosphere {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.svc-atmosphere::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  left: 50%;
+  width: 1100px;
+  height: 700px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse 55% 55% at 50% 40%, var(--services-atmosphere) 0%, transparent 70%);
+  filter: blur(10px);
+}
+
+.svc-glow {
+  position: absolute;
+  inset: -25%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse 60% 55% at 55% 45%, var(--service-glow) 0%, transparent 72%);
+  filter: blur(36px);
+  pointer-events: none;
+}
+
+.ai-core-scene {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  perspective: 1000px;
+  animation: core-drift 9s ease-in-out infinite;
+}
+
+/* Tiny drifting particles — pure atmosphere, opacity/scale pulse only, no
+   movement, and no connection to anything. Hidden on the smallest screens
+   to keep the mobile composition simple and light. */
+.ai-core-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  opacity: 0;
+  animation: particle-pulse 5s ease-in-out infinite;
+}
+.particle-blue { background: var(--color-blue); }
+.particle-sage { background: var(--color-sage); }
+.particle-lavender { background: var(--color-lavender); }
+.particle-peach { background: var(--color-peach); }
+
+/* ---------- 1. AI knowledge assistant (focal point) ---------- */
+/* .ai-core-chat-wrap is the plain, untransformed positioning layer JS
+   applies its own small parallax translate to; .ai-core-chat inside it
+   keeps a fixed CSS perspective tilt plus its own idle float — kept on
+   separate elements so JS's inline transform never wipes out the card's
+   static tilt (setting `transform` from JS replaces the CSS value
+   entirely rather than merging with it). */
+.ai-core-chat-wrap {
+  position: absolute;
+  z-index: 3;
+  width: 60%;
+}
+.ai-core-chat {
+  transform: perspective(700px) rotateY(-3deg) rotate(-1deg);
+  animation: float-slow 8s ease-in-out infinite;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--paper-subtle) 92%, var(--color-blue) 8%);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(4px);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ai-core-chat-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.ai-core-chat-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-blue);
+  box-shadow: 0 0 5px color-mix(in srgb, var(--color-blue) 70%, transparent);
+}
+.ai-core-chat-title {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ai-core-chat-msg {
+  max-width: 82%;
+  padding: 6px 9px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+}
+.chat-user {
+  align-self: flex-end;
+  background: var(--paper);
+  border-bottom-right-radius: 2px;
+}
+.chat-ai {
+  align-self: flex-start;
+  background: var(--color-blue-soft);
+  border-color: color-mix(in srgb, var(--color-blue) 30%, transparent);
+  border-bottom-left-radius: 2px;
+}
+.ai-core-chat-text {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 8.5px;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.chat-ai .ai-core-chat-text {
+  color: var(--ink-muted);
+}
+
+/* ---------- 2. Document intelligence (quiet back layer) ---------- */
+/* Tucked behind the assistant — a real invoice being processed. Slightly
+   blurred, dimmer and smaller-scaled than the front card, which is the
+   whole depth cue: no rotateX/Y tilt fights the blur here, so it stays a
+   simple, cheap static transform. */
+.ai-core-invoice-wrap {
+  position: absolute;
+  z-index: 1;
+  width: 46%;
+}
+.ai-core-invoice {
+  position: relative;
+  transform: perspective(700px) rotateY(6deg) rotate(3deg) scale(0.96);
+  filter: blur(0.4px);
+  opacity: 0.88;
+  animation: float-slow 9s ease-in-out infinite;
+  animation-delay: 0.4s;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--paper-subtle) 90%, var(--color-sage) 10%);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-sm);
+  padding: 9px 10px 11px;
+  overflow: hidden;
+}
+.ai-core-invoice-head {
+  position: relative;
+  margin-bottom: 7px;
+}
+.ai-core-doc-fold {
+  position: absolute;
+  top: -9px;
+  right: -10px;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, transparent 50%, color-mix(in srgb, var(--color-sage) 26%, var(--paper-subtle)) 50%);
+  border-bottom-left-radius: 3px;
+}
+.ai-core-invoice-file {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+.ai-core-invoice-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 3px 0;
+  border-top: 1px solid var(--line);
+}
+.ai-core-invoice-row:first-of-type {
+  border-top: none;
+}
+.ai-core-invoice-label {
+  font-family: var(--font-mono);
+  font-size: 7px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+}
+.ai-core-invoice-value {
+  font-family: var(--font-sans);
+  font-size: 8px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+.ai-core-invoice-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-top: 8px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--accent-warm);
+  background: var(--accent-warm-wash);
+  border: 1px solid color-mix(in srgb, var(--accent-warm) 32%, transparent);
+}
+
+/* ---------- 3. Small application card ---------- */
+/* A minimal AI-powered app state — structured, alive (the "Live" pill),
+   supporting the assistant rather than competing with it. */
+.ai-core-appcard-wrap {
+  position: absolute;
+  z-index: 2;
+  width: 30%;
+}
+.ai-core-appcard {
+  position: relative;
+  transform: perspective(700px) rotateY(-7deg) rotate(2deg);
+  animation: float-slow 7s ease-in-out infinite;
+  animation-delay: 1s;
+  border-radius: 12px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--paper-subtle) 90%, var(--color-lavender) 10%);
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(3px);
+  padding: 8px 9px 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ai-core-appcard-bar {
+  display: block;
+  width: 34%;
+  height: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-lavender) 55%, transparent);
+}
+.ai-core-appcard-pill {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 6.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--accent-warm);
+  background: var(--accent-warm-wash);
+}
+.ai-core-appcard-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ai-core-appcard-dot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+}
+.ai-core-appcard-dot.dot-blue { background: var(--color-blue); }
+.ai-core-appcard-dot.dot-sage { background: var(--color-sage); }
+.ai-core-appcard-line {
+  display: block;
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink-faint) 50%, transparent);
+}
+.ai-core-appcard-line.short {
+  flex: none;
+  width: 55%;
+}
+
+/* ---------- 4. Tech tags (metadata, not a wiring diagram) ---------- */
+.ai-core-tag-wrap {
+  position: absolute;
+  z-index: 2;
+}
+.ai-core-tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  border: 1px solid;
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(6px);
+  white-space: nowrap;
+  animation: float-slow 6.5s ease-in-out infinite;
+}
+.tag-blue {
+  background: var(--color-blue-soft);
+  border-color: color-mix(in srgb, var(--signal) 30%, transparent);
+  color: var(--signal);
+  animation-delay: 0.2s;
+}
+.tag-sage {
+  background: var(--color-sage-soft);
+  border-color: color-mix(in srgb, var(--accent-warm) 30%, transparent);
+  color: var(--accent-warm);
+  animation-delay: 1.6s;
+}
+.tag-lavender {
+  background: var(--color-lavender-soft);
+  border-color: color-mix(in srgb, var(--accent-coral) 30%, transparent);
+  color: var(--accent-coral);
+  animation-delay: 0.9s;
+}
+.tag-peach {
+  background: var(--color-peach-soft);
+  border-color: color-mix(in srgb, var(--accent-peach) 32%, transparent);
+  color: var(--accent-peach);
+  animation-delay: 2.3s;
+}
+
+@keyframes core-drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+@keyframes particle-pulse {
+  0%, 100% { opacity: 0; transform: scale(0.6); }
+  50% { opacity: 0.85; transform: scale(1); }
+}
+
+/* Mobile simplification — the assistant and the document behind it already
+   tell the whole story on their own; the small app card and the tech tags,
+   both purely supporting, drop out below the point where they'd start
+   crowding the composition rather than supporting it. */
+@media (max-width: 639px) {
+  .ai-core-particle,
+  .ai-core-appcard-wrap,
+  .ai-core-tag-wrap {
+    display: none;
+  }
+}
+
+/* Very small, continuous motion for the Services mini-visuals — a
+   "breathing" scale, a slight horizontal shift (extraction arrow), and a
+   soft opacity pulse for skeleton bars. Every amplitude here is tiny; the
+   point is to make the illustrations read as live systems on a second
+   glance, not to animate for its own sake. */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+.animate-breathe-slow {
+  animation: breathe 4s ease-in-out infinite;
+}
+@keyframes shift-x {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(3px); }
+}
+.animate-shift-x {
+  animation: shift-x 5s ease-in-out infinite;
+}
+@keyframes bar-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.animate-bar-pulse {
+  animation: bar-pulse 3.2s ease-in-out infinite;
+}
+
+/* The Debugging service's "issue becomes resolved" badge — two labels
+   stacked in the same spot, crossfading via one shared keyframe played
+   half a cycle out of phase, rather than two separate keyframes. */
+@keyframes status-crossfade {
+  0%, 45% { opacity: 1; }
+  50%, 95% { opacity: 0; }
+  100% { opacity: 1; }
+}
+.animate-status-a {
+  animation: status-crossfade 6s ease-in-out infinite;
+}
+.animate-status-b {
+  /* Base opacity 0 matters only for the ~3s animation-delay window right
+     after mount: with the default fill-mode, an element shows its
+     non-animated style during its own delay, which would otherwise be the
+     unset default (opacity 1) — making both labels visible together for
+     the first cycle. Declaring it here means the delay period correctly
+     shows "Fixed" hidden until its keyframes take over. */
+  opacity: 0;
+  animation: status-crossfade 6s ease-in-out infinite;
+  animation-delay: 3s;
+}
+
+/* Scroll-reveal primitive, driven by the Reveal client component toggling
+   .is-visible once a section enters the viewport. */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 600ms cubic-bezier(0.2, 0.7, 0.3, 1), transform 600ms cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
