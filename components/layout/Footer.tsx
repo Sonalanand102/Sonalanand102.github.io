@@ -1,17 +1,10 @@
-const EMAIL = "sonalanand102@gmail.com";
+import { SOCIAL_LINKS, linkProps, type SocialLink } from "@/components/layout/socialLinks";
 
-// TODO: replace with your real LinkedIn profile URL
-const LINKEDIN_URL = "#";
-// TODO: replace with your real GitHub profile URL
-const GITHUB_URL = "#";
-
-const LINKS = [
-  { label: "Work", href: "#work" },
-  { label: "Services", href: "#services" },
-  { label: "About", href: "#about" },
-  { label: "LinkedIn", href: LINKEDIN_URL },
-  { label: "GitHub", href: GITHUB_URL },
-  { label: "Email", href: `mailto:${EMAIL}` },
+const LINKS: SocialLink[] = [
+  { label: "Work", href: "#work", external: false },
+  { label: "Services", href: "#services", external: false },
+  { label: "About", href: "#about", external: false },
+  ...SOCIAL_LINKS,
 ];
 
 export default function Footer() {
@@ -33,6 +26,7 @@ export default function Footer() {
               <li key={link.label}>
                 <a
                   href={link.href}
+                  {...linkProps(link)}
                   className="transition-colors duration-150 hover:text-signal"
                 >
                   {link.label}

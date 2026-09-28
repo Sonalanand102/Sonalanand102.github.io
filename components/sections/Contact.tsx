@@ -1,18 +1,6 @@
 import Reveal from "@/components/ui/Reveal";
 import Magnetic from "@/components/ui/Magnetic";
-
-const EMAIL = "sonalanand102@gmail.com";
-
-// TODO: replace with your real LinkedIn profile URL
-const LINKEDIN_URL = "#";
-// TODO: replace with your real GitHub profile URL
-const GITHUB_URL = "#";
-
-const SECONDARY_LINKS = [
-  { label: "Email", href: `mailto:${EMAIL}` },
-  { label: "LinkedIn", href: LINKEDIN_URL },
-  { label: "GitHub", href: GITHUB_URL },
-];
+import { EMAIL, SOCIAL_LINKS, linkProps } from "@/components/layout/socialLinks";
 
 export default function Contact() {
   return (
@@ -60,10 +48,11 @@ export default function Contact() {
         </div>
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-          {SECONDARY_LINKS.map((link) => (
+          {SOCIAL_LINKS.map((link) => (
             <a
               key={link.label}
               href={link.href}
+              {...linkProps(link)}
               className="text-[14px] font-medium text-contact-ink-muted underline decoration-contact-ink-muted underline-offset-4 transition-colors duration-150 hover:text-contact-ink hover:decoration-[rgb(var(--contact-accent-rgb))]"
             >
               {link.label}
